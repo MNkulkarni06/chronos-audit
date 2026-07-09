@@ -1,0 +1,20 @@
+target/
+.idea/
+*.iml
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings/
+
+### VS Code ###
+.vscode/
+
+### Logs ###
+*.log
+
+### OS Files ###
+.DS_Store
+Thumbs.db
