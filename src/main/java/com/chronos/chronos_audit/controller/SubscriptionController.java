@@ -12,7 +12,7 @@ public class SubscriptionController {
 
     private final AuditService auditService;
 
-    // Dependency Injection via Constructor
+    // Dependency Injection via
     public SubscriptionController(AuditService auditService) {
         this.auditService = auditService;
     }
