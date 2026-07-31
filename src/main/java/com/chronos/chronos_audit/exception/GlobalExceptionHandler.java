@@ -9,14 +9,13 @@ import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-@ControllerAdvice // 🛡️ Declares this class as the global API interceptor
+// 🎯 FIX: Restrict this advice layer strictly to our custom API endpoints package
+@ControllerAdvice(basePackages = "com.chronos.chronos_audit.controller")
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<Map<String, Object>> handleResourceNotFound(ResourceNotFoundException ex) {
         Map<String, Object> errorBody = new LinkedHashMap<>();
-
-        // Constructing a uniform, highly readable error payload format
         errorBody.put("timestamp", LocalDateTime.now());
         errorBody.put("status", HttpStatus.NOT_FOUND.value());
         errorBody.put("error", "Not Found");
@@ -28,8 +27,10 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGenericException(Exception ex) {
-        Map<String, Object> errorBody = new LinkedHashMap<>();
+        // Log the actual error to the console so you can still debug it behind the scenes
+        ex.printStackTrace();
 
+        Map<String, Object> errorBody = new LinkedHashMap<>();
         errorBody.put("timestamp", LocalDateTime.now());
         errorBody.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
         errorBody.put("error", "Internal Server Error");

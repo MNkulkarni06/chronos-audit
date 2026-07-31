@@ -12,7 +12,6 @@ public class SubscriptionController {
 
     private final AuditService auditService;
 
-    // Dependency Injection via
     public SubscriptionController(AuditService auditService) {
         this.auditService = auditService;
     }
@@ -25,4 +24,6 @@ public class SubscriptionController {
         Map<String, Object> result = auditService.calculateLeakRisk(id, telemetryPayload);
         return ResponseEntity.ok(result);
     }
+
+
 }

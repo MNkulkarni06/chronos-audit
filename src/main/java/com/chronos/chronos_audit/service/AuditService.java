@@ -14,10 +14,13 @@ import java.util.Optional;
 public class AuditService {
 
     private final SubscriptionRepository subscriptionRepository;
+    private final EmailNotificationService emailNotificationService;
 
     // Direct Constructor Injection for repository persistence
-    public AuditService(SubscriptionRepository subscriptionRepository) {
+    // Add this method to evaluate existing database records dynamically
+    public AuditService(SubscriptionRepository subscriptionRepository, EmailNotificationService emailNotificationService) {
         this.subscriptionRepository = subscriptionRepository;
+        this.emailNotificationService = emailNotificationService;
     }
 
     public Map<String, Object> calculateLeakRisk(String id, SubscriptionDTO telemetry) {
@@ -73,24 +76,21 @@ public class AuditService {
         return assessment;
     }
 
-    // Add this method to evaluate existing database records dynamically
     public void evaluateDormantSubscription(Subscription subscription) {
-        int leakScore = 0;
-
-        // Core Business Logic: If a subscription hasn't been updated in 30 days,
-        // it implies telemetry channels (Email/Network) have gone cold.
-        // Since it's still in our DB, the recurring financial charge is active.
-        leakScore += 40; // Weight: No matching DNS logs logged recently
-        leakScore += 30; // Weight: No active email interactions parsed
-        leakScore += 30; // Weight: Passive billing loop active
+        int leakScore = 100;
 
         subscription.setStatus("CRITICAL_LEAK");
-
-        // Save the updated status back to MySQL
         subscriptionRepository.save(subscription);
 
         System.out.println("   [BATCH ASSESS] ID: " + subscription.getId()
                 + " | Provider: " + subscription.getProviderName()
                 + " | Status Updated to: CRITICAL_LEAK (" + leakScore + "%)");
+
+        // 🚀 Triggers asynchronous email task off the main thread
+        emailNotificationService.sendCriticalLeakAlert(
+                subscription.getId(),
+                subscription.getProviderName(),
+                subscription.getMonthlyAmount()
+        );
     }
 }
