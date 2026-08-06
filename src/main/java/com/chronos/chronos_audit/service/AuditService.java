@@ -1,5 +1,6 @@
 package com.chronos.chronos_audit.service;
 
+import com.chronos.chronos_audit.dto.EmailMetadataRequest;
 import com.chronos.chronos_audit.dto.SubscriptionDTO;
 import com.chronos.chronos_audit.model.Subscription;
 import com.chronos.chronos_audit.repository.SubscriptionRepository;
@@ -121,6 +122,32 @@ public class AuditService {
             return String.format("✅ [DNS INGRESS] Activity recorded for %s (%s). Status reset to ACTIVE.", provider, domain);
         } else {
             return String.format("⚠️ [DNS INGRESS] Provider '%s' not tracked in system.", provider);
+        }
+    }
+
+    @Transactional
+    public String processEmailMetadata(EmailMetadataRequest emailRequest) {
+        String sender = emailRequest.getSenderEmail();
+
+        String providerDomain = sender.contains("@") ? sender.substring(sender.indexOf("@") + 1) : sender;
+        String providerKeyword = providerDomain.split("\\.")[0];
+
+        LocalDateTime interactionTime = emailRequest.getReceivedTimestamp() != null
+                ? emailRequest.getReceivedTimestamp()
+                : LocalDateTime.now();
+
+        Optional<Subscription> optionalSubscription = subscriptionRepository.findByProviderNameIgnoreCase(providerKeyword);
+
+        if (optionalSubscription.isPresent()) {
+            Subscription subscription = optionalSubscription.get();
+            subscription.setLastInteractionTimestamp(interactionTime);
+            subscription.setStatus("ACTIVE");
+            subscriptionRepository.save(subscription);
+
+            return String.format("✅ [EMAIL INGRESS] Inbound notification header parsed from %s. Provider '%s' status reset to ACTIVE.",
+                    sender, subscription.getProviderName());
+        } else {
+            return String.format("⚠️ [EMAIL INGRESS] Sender domain '%s' does not match any active subscription.", sender);
         }
     }
 }

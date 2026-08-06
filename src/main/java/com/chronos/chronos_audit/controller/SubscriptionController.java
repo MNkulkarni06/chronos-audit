@@ -1,5 +1,6 @@
 package com.chronos.chronos_audit.controller;
 
+import com.chronos.chronos_audit.dto.EmailMetadataRequest;
 import com.chronos.chronos_audit.dto.NetworkLogRequest;
 import com.chronos.chronos_audit.dto.SubscriptionDTO;
 import com.chronos.chronos_audit.service.AuditService;
@@ -39,5 +40,11 @@ public class SubscriptionController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/email-logs")
+    @Operation(summary = "Ingest email header metadata to detect active service usage and bump interaction timestamp")
+    public ResponseEntity<String> ingestEmailMetadata(@Valid @RequestBody EmailMetadataRequest emailRequest) {
+        String response = auditService.processEmailMetadata(emailRequest);
+        return ResponseEntity.ok(response);
+    }
 
 }
