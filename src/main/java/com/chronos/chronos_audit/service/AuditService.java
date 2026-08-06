@@ -4,6 +4,8 @@ import com.chronos.chronos_audit.dto.SubscriptionDTO;
 import com.chronos.chronos_audit.model.Subscription;
 import com.chronos.chronos_audit.repository.SubscriptionRepository;
 import org.springframework.stereotype.Service;
+import com.chronos.chronos_audit.dto.NetworkLogRequest;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
@@ -92,5 +94,33 @@ public class AuditService {
                 subscription.getProviderName(),
                 subscription.getMonthlyAmount()
         );
+    }
+
+    @Transactional
+    public String processNetworkLog(NetworkLogRequest logRequest) {
+        String provider = logRequest.getProviderName();
+        String domain = logRequest.getDomain();
+        LocalDateTime interactionTime = logRequest.getTimestamp() != null
+                ? logRequest.getTimestamp()
+                : LocalDateTime.now();
+
+        Optional<Subscription> optionalSubscription = subscriptionRepository.findByProviderNameIgnoreCase(provider);
+
+        if (optionalSubscription.isPresent()) {
+            Subscription subscription = optionalSubscription.get();
+
+            // 1. Update interaction timestamp
+            subscription.setLastInteractionTimestamp(interactionTime);
+
+            // 2. Reset status back to ACTIVE
+            subscription.setStatus("ACTIVE");
+
+            // 3. Save to database
+            subscriptionRepository.save(subscription);
+
+            return String.format("✅ [DNS INGRESS] Activity recorded for %s (%s). Status reset to ACTIVE.", provider, domain);
+        } else {
+            return String.format("⚠️ [DNS INGRESS] Provider '%s' not tracked in system.", provider);
+        }
     }
 }

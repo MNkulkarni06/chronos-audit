@@ -9,7 +9,6 @@ import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-// 🎯 FIX: Restrict this advice layer strictly to our custom API endpoints package
 @ControllerAdvice(basePackages = "com.chronos.chronos_audit.controller")
 public class GlobalExceptionHandler {
 
