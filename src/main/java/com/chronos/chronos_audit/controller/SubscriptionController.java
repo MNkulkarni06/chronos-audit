@@ -1,5 +1,6 @@
 package com.chronos.chronos_audit.controller;
 
+import com.chronos.chronos_audit.dto.BankTransactionRequest;
 import com.chronos.chronos_audit.dto.EmailMetadataRequest;
 import com.chronos.chronos_audit.dto.NetworkLogRequest;
 import com.chronos.chronos_audit.dto.SubscriptionDTO;
@@ -47,4 +48,10 @@ public class SubscriptionController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/bank-transactions")
+    @Operation(summary = "Ingest financial ledger payment logs to reconcile recurring charges and update timestamps")
+    public ResponseEntity<String> ingestBankTransaction(@Valid @RequestBody BankTransactionRequest transactionRequest) {
+        String response = auditService.processBankTransaction(transactionRequest);
+        return ResponseEntity.ok(response);
+    }
 }
