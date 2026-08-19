@@ -1,9 +1,7 @@
 package com.chronos.chronos_audit.controller;
 
-import com.chronos.chronos_audit.dto.BankTransactionRequest;
-import com.chronos.chronos_audit.dto.EmailMetadataRequest;
-import com.chronos.chronos_audit.dto.NetworkLogRequest;
-import com.chronos.chronos_audit.dto.SubscriptionDTO;
+import com.chronos.chronos_audit.dto.*;
+import com.chronos.chronos_audit.repository.SubscriptionRepository;
 import com.chronos.chronos_audit.service.AuditService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -11,6 +9,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -20,15 +19,17 @@ public class SubscriptionController {
 
     private final AuditService auditService;
 
-    public SubscriptionController(AuditService auditService) {
-        this.auditService = auditService;
-    }
+    private final SubscriptionRepository subscriptionRepository;
 
+    public SubscriptionController(AuditService auditService, SubscriptionRepository subscriptionRepository) {
+        this.auditService = auditService;
+        this.subscriptionRepository = subscriptionRepository;
+    }
     @PostMapping("/evaluate/{id}")
     @Operation(summary = "Evaluate subscription leak risk based on telemetry payload")
     public ResponseEntity<Map<String, Object>> runAudit(
             @PathVariable String id,
-            @RequestBody SubscriptionDTO telemetryPayload) {
+            @Valid @RequestBody SubscriptionDTO telemetryPayload) {
 
         Map<String, Object> result = auditService.calculateLeakRisk(id, telemetryPayload);
         return ResponseEntity.ok(result);
@@ -53,5 +54,11 @@ public class SubscriptionController {
     public ResponseEntity<String> ingestBankTransaction(@Valid @RequestBody BankTransactionRequest transactionRequest) {
         String response = auditService.processBankTransaction(transactionRequest);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/dashboard/leaks")
+    public ResponseEntity<List<LeakingSubscriptionDTO>> getCriticalLeaksDashboard() {
+        List<LeakingSubscriptionDTO> leaks = subscriptionRepository.findAllCriticalLeaksSummary();
+        return ResponseEntity.ok(leaks);
     }
 }

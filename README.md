@@ -1,46 +1,75 @@
-# Chronos-Audit: Automated Subscription Leak Finder Engine
+# Chronos-Audit ⏱️💳
+> Automated Financial Telemetry & Subscription Leak Interception Engine
 
-Chronos-Audit is a high-performance backend automation registry designed to optimize recurring transactional ledgers. The platform acts as a regulatory and financial risk engine, evaluating subscription data pipelines in real-time to identify, flag, and mitigate dormant financial exposure ("leakage").
-
----
-
-## 🏗️ Core System Architecture
-The application is built on a decoupled three-tier enterprise layout designed for predictable horizontal scalability and safe transaction boundaries:
-
-*   **API & Documentation Layer:** Managed by Spring Boot Web MVC and fully mapped via OpenAPI 3.0 / Swagger UI for sandbox testing.
-*   **Core Automation Layer:** Executes concurrent, time-boxed database evaluation sweeps using Spring's native scheduling engine.
-*   **Data Persistence Layer:** Utilizes an optimized connection pool (HikariCP) mapped to a MySQL relational database engine with automated schema updates managed by Hibernate ORM.
+Chronos-Audit is an automated financial monitoring backend service engineered in Spring Boot. It continuously aggregates multi-source activity signals (DNS lookups, email headers, and bank ledger records) to evaluate recurring merchant transactions, detect dormant subscription leaks (inactive > 30 days), and dispatch proactive alerts.
 
 ---
 
-## ⚡ Automated Leak Evaluation Engine Logic
-The core value proposition of the system is its autonomous background audit scheduler. Every execution cycle, the batch engine evaluates record telemetry against a distinct risk assessment matrix:
+## 🚀 Key Architectural Features
 
-1.  **Dormancy Detection:** The engine performs optimized timestamp comparisons to isolate records that have not registered active user interactions within a 30-day temporal window.
-2.  **Risk Matrix Profiling:** The system analyzes three distinct behavioral signals:
-    *   `hasNetworkActivity` (Low-level gateway traffic logs)
-    *   `hasEmailActivity` (SSO / transactional correspondence logs)
-    *   `hasRecurringCharge` (Active financial ledger debits)
-3.  **State Management Optimization:** If zero activity is detected across communication and network pathways while billing persists, the ledger updates the state to `CRITICAL_LEAK (100%)` to halt further financial loss.
+* **Multi-Source Ingress Telemetry**: Ingests and normalizes transaction inputs across email verification headers, DNS telemetry, and core banking feeds.
+* **Automated Batch Processing Engine**: Evaluates dormancy thresholds (30-day inactivity windows) on a scheduled cron cadence using Spring `@Scheduled`.
+* **Proactive Renewal Detection**: Performs forward-looking sweeps to alert users 48 hours before an active billing cycle charges.
+* **Decoupled Asynchronous Dispatcher**: Offloads SMTP network blocking using Spring `@Async` and JavaMailSender to maintain millisecond-level request responsiveness.
+* **Optimized JPA & Query Projections**: Employs direct constructor DTO projections and `JOIN FETCH` queries to eliminate Hibernate $N+1$ select overhead and avoid lazy proxy detachment.
+* **Centralized Exception Propagation**: Unified `@RestControllerAdvice` delivering RFC 7807 compliant error payloads with custom application diagnostic codes.
 
 ---
 
-## 🔌 API Contracts & Interactivity
+## 🛠️ Tech Stack & Dependencies
 
-The entire exposed controller layer is fully integrated with interactive API documentation.
+* **Language**: Java 17
+* **Framework**: Spring Boot 3.x (Spring Web, Spring Data JPA, Spring Validation, Spring Mail)
+* **Database**: MySQL 8.x
+* **Documentation**: OpenAPI 3.0 / Swagger UI (Springdoc)
+* **Email Sandbox**: Mailtrap / SMTP
 
-### Interactive Sandbox Playground
-When the application context is active, the complete end-to-end endpoint infrastructure can be visualized, modified, and executed live via the web browser:
-👉 **Target Path:** `http://localhost:8080/swagger-ui/index.html`
+---
 
-### Primary Audit Execution Endpoint
-*   **Route:** `POST /api/audit/evaluate/{id}`
-*   **Content-Type:** `application/json`
+## 🏛️ Database Schema Design
 
-#### Sample Telemetry Payload
-```json
-{
-  "hasNetworkActivity": false,
-  "hasEmailActivity": false,
-  "hasRecurringCharge": true
-}
++------------------+         +-------------------------------+
+|      USERS       |         |         SUBSCRIPTIONS         |
++------------------+         +-------------------------------+
+| id (PK)          |<---+     | id (PK)                       |
+| email (UQ)       |    |     | user_id (FK) -----------------+
+| full_name        |    +-----| provider_name                 |
+| created_at       |          | monthly_amount                |
++------------------+          | status (ACTIVE, CRITICAL_LEAK)|
+| last_interaction_timestamp    |
+| next_billing_date             |
++-------------------------------+
+
+
+---
+
+## 🔌 API Endpoints Summary
+
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `POST` | `/api/audit/ingest` | Ingest real-time bank ledger transactions and update touchpoints |
+| `GET` | `/api/audit/dashboard/leaks` | Fetch high-performance DTO list of all flagged leak subscriptions |
+| `GET` | `/swagger-ui/index.html` | Interactive Swagger API Explorer & schema documentation |
+
+---
+
+## ⚙️ Configuration & Setup
+
+### 1. Database Setup
+```sql
+CREATE DATABASE chronos_audit_db;
+
+2. Configure application.properties
+Update src/main/resources/application.properties with your database and Mailtrap SMTP credentials:
+
+3. Build and Run
+Bash
+# Clone the repository
+git clone [https://github.com/](https://github.com/)<your-username>/chronos-audit.git
+cd chronos-audit
+
+# Build project
+mvn clean install
+
+# Run application
+mvn spring-boot:run

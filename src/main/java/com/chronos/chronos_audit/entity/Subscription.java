@@ -49,4 +49,14 @@ public class Subscription {
     public void setLastInteractionTimestamp(LocalDateTime lastInteractionTimestamp) { this.lastInteractionTimestamp = lastInteractionTimestamp; }
     public List<AuditLog> getAuditLogs() { return auditLogs; }
     public void setAuditLogs(List<AuditLog> auditLogs) { this.auditLogs = auditLogs; }
+    @Column(name = "next_billing_date")
+    private LocalDateTime nextBillingDate;
+
+    public LocalDateTime getNextBillingDate() {
+        return nextBillingDate;
+    }
+
+    public void setNextBillingDate(LocalDateTime nextBillingDate) {
+        this.nextBillingDate = nextBillingDate;
+    }
 }
